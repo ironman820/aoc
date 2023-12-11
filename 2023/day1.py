@@ -44,7 +44,8 @@
 def calibrate():
     calibration_sum: int = 0
     with open("day1-input.txt", "r") as file:
-        lines: list[str] = file.readlines()
+        input = file.read()
+    lines: list[str] = input.split("\n")[:-1]
     for code in lines:
         value = get_value(code)
         calibration_sum = calibration_sum + value
@@ -82,32 +83,54 @@ def calibrate():
         "eight": 8,
     }
     calibration_sum = 0
+    numbers: dict[int, int] = {}
+    for number in range(10):
+        numbers[number] = -1
     for code in lines:
-        code = code[:-1]  # 19qdlpmdrxone7sevennine
-        for location in range(
-            len(code) - 1
-        ):  # 19qdlpmdrxone7sevennine - len = 23 - len-1 = 22 - range = 21
-            for key, value in digits.items():
-                length = len(key)  # len("one") = 3
-                end = location + length - 1  # 21+3-1=23
-                print(
-                    f"location: {location}\ncode: {code}\ncode[:location]: {code[:location]}\nvalue: {value}\ncode[end + 1:]: {code[end + 1:]}"
+        small: bool = False
+        large: bool = False
+        while not small and not large:
+            for string, digit in digits.items():
+                numbers[digit] = code.find(string)
+            if not small:
+                smallest: dict[str, int] = {
+                    "number": -1,
+                    "value": 1000,
+                }
+                for number, value in numbers.items():
+                    if -1 < value < smallest["value"]:
+                        smallest["number"] = number
+                        smallest["value"] = value
+                if smallest["number"] == -1:
+                    small = True
+                    large = True
+                    continue
+                code = code.replace(
+                    list(digits.keys())[
+                        list(digits.values()).index(smallest["number"])
+                    ],
+                    str(smallest["number"]),
+                    1,
                 )
-                if end > len(code):  # 23 > 23
+            if not large:
+                largest: dict[str, int] = {
+                    "number": -1,
+                    "value": -1,
+                }
+                for number, value in numbers.items():
+                    if value > largest["value"]:
+                        largest["number"] = number
+                        largest["value"] = value
+                if largest["number"] == -1:
+                    large = True
                     continue
-                if key != code[location:end]:  # code[21:23] - ine
-                    continue
-                code = (
-                    code[:location] + str(value) + code[end + 1 :]
-                )  # loc=19, end=23, value=nine, code[:loc]=19qdlpmdrxone7sevennine
-        # for length in [3, 4, 5]:
-        #     for location in range(len(code) - length):
-        #         for key, value in digits.items():
-        #             if len(key) > length:
-        #                 continue
-        #             if key != code[location : (location + length - 1)]:
-        #                 continue
-        #             code = code[:location] + str(value) + code[location + 1 :]
+                code = code.replace(
+                    list(digits.keys())[
+                        list(digits.values()).index(largest["number"])
+                    ],
+                    str(largest["number"]),
+                    1,
+                )
         value = get_value(code)
         calibration_sum = calibration_sum + value
     print(f"The true sum of all calibration values is: {calibration_sum}.")
